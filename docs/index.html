@@ -28,13 +28,13 @@
   <!-- AR Container -->
   <div id="ar-container"></div>
 
-  <!-- Load Local Libraries -->
+  <!-- Load Local Libraries (No import statements needed) -->
   <script src="three.min.js"></script>
   <script src="mindar-image-three.prod.js"></script>
 
   <!-- Main AR Logic -->
   <script>
-    // Ensure MindAR is loaded
+    // Ensure MindAR is loaded correctly
     window.addEventListener("load", () => {
       if (!window.MINDAR) {
         console.error("❌ MindAR failed to load!");
@@ -86,6 +86,7 @@
       });
     });
   </script>
+
 </body>
 
 </html>

@@ -1,3 +1,4 @@
+/*
 // Ensure MindAR is available
 const { MindARThree } = mindarThree;
 
@@ -41,3 +42,4 @@ mindarInstance.start();
 renderer.setAnimationLoop(() => {
   renderer.render(scene, camera);
 });
+*/
