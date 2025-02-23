@@ -4,8 +4,6 @@
 <head>
   <meta charset="UTF-8">
   <title>AR Video Player</title>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.1/dist/mindar-image-three.prod.js"></script>
   <style>
     body {
       margin: 0;
@@ -24,14 +22,70 @@
 </head>
 
 <body>
-  <!-- Video File -->
+  <!-- Video Element -->
   <video id="ar-video" src="video.mp4" loop muted></video>
 
   <!-- AR Container -->
   <div id="ar-container"></div>
 
-  <!-- Main JS File -->
-  <script src="main.js"></script>
+  <!-- Load Local Libraries -->
+  <script src="three.min.js"></script>
+  <script src="mindar-image-three.prod.js"></script>
+
+  <!-- Main AR Logic -->
+  <script>
+    // Ensure MindAR is loaded
+    window.addEventListener("load", () => {
+      if (!window.MINDAR) {
+        console.error("❌ MindAR failed to load!");
+        return;
+      }
+      console.log("✅ MindAR loaded successfully!");
+
+      const { MindARThree } = window.MINDAR;
+
+      // Initialize MindAR
+      const mindarThree = new MindARThree({
+        container: document.querySelector("#ar-container"),
+        imageTargetSrc: "targets.mind"
+      });
+
+      const { renderer, scene, camera } = mindarThree;
+
+      // Load Video Texture
+      const video = document.querySelector("#ar-video");
+      const videoTexture = new THREE.VideoTexture(video);
+
+      // Create a Plane for the Video
+      const geometry = new THREE.PlaneGeometry(1, 0.75);
+      const material = new THREE.MeshBasicMaterial({ map: videoTexture });
+      const videoPlane = new THREE.Mesh(geometry, material);
+
+      // Add Plane to Anchor
+      const anchor = mindarThree.addAnchor(0);
+      anchor.group.add(videoPlane);
+
+      // Play video on target detection
+      anchor.onTargetFound = () => {
+        video.play();
+        console.log("🎯 Target Found: Playing Video");
+      };
+
+      // Pause video if target is lost
+      anchor.onTargetLost = () => {
+        video.pause();
+        console.log("❌ Target Lost: Pausing Video");
+      };
+
+      // Start AR Session
+      mindarThree.start();
+
+      // Render Loop
+      renderer.setAnimationLoop(() => {
+        renderer.render(scene, camera);
+      });
+    });
+  </script>
 </body>
 
 </html>
