@@ -1,102 +1,54 @@
-<!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+  </head>
 
-<head>
-  <meta charset="UTF-8">
-  <title>AR Video Player</title>
-  <style>
-    body {
-      margin: 0;
-      overflow: hidden;
-    }
+  <body>
+    <!-- AR Scene -->
+    <a-scene
+      mindar-image="imageTargetSrc: targets.mind;"
+      color-space="sRGB"
+      renderer="colorManagement: true, physicallyCorrectLights"
+      vr-mode-ui="enabled: false"
+      device-orientation-permission-ui="enabled: false"
+    >
+      <!-- Assets -->
+      <a-assets>
+        <!-- Video Source -->
+        <video id="ar-video" src="video.mp4" preload="auto" loop></video>
+      </a-assets>
 
-    #ar-container {
-      width: 100vw;
-      height: 100vh;
-    }
+      <!-- Camera -->
+      <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-    #ar-video {
-      display: none; /* Hide video until the target is detected */
-    }
-  </style>
-</head>
+      <!-- AR Target (Index 0: First Target in targets.mind) -->
+      <a-entity mindar-image-target="targetIndex: 0" id="video-target">
+        <!-- Display Video on a Plane -->
+        <a-video src="#ar-video" position="0 0 0" width="1" height="0.56" rotation="0 0 0"></a-video>
+      </a-entity>
+    </a-scene>
 
-<body>
-  <!-- Video Element -->
-  <video id="ar-video" src="video.mp4" loop muted></video>
+    <!-- JavaScript to Control Video Playback -->
+    <script>
+      // Wait for scene to load
+      document.querySelector("a-scene").addEventListener("loaded", () => {
+        const video = document.querySelector("#ar-video");
+        const target = document.querySelector("#video-target");
 
-  <!-- AR Container -->
-  <div id="ar-container"></div>
+        // Play video when the target is found
+        target.addEventListener("targetFound", () => {
+          console.log("🎯 Target Found: Playing video");
+          video.play();
+        });
 
-  <!-- Load Scripts from CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.1/dist/mindar-image-three.prod.js"></script>
-  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
-
-  <script>
-    // Ensure scripts are loaded successfully
-    window.addEventListener("load", () => {
-      if (!window.THREE) {
-        console.error("❌ Three.js failed to load!");
-        return;
-      } else {
-        console.log("✅ Three.js loaded successfully!");
-      }
-
-      if (!window.MINDAR) {
-        console.error("❌ MindAR failed to load!");
-        return;
-      } else {
-        console.log("✅ MindAR loaded successfully!");
-      }
-
-      // Importing MindARThree from the MindAR package
-      const { MindARThree } = window.MINDAR;
-
-      // Initialize MindAR with the target image
-      const mindarThree = new MindARThree({
-        container: document.querySelector("#ar-container"),
-        imageTargetSrc: "targets.mind",
+        // Pause video when the target is lost
+        target.addEventListener("targetLost", () => {
+          console.log("❌ Target Lost: Pausing video");
+          video.pause();
+        });
       });
-
-      const { renderer, scene, camera } = mindarThree;
-
-      // Set up the video texture
-      const video = document.querySelector("#ar-video");
-      const videoTexture = new THREE.VideoTexture(video);
-
-      // Create a PlaneGeometry to display the video
-      const geometry = new THREE.PlaneGeometry(1, 0.75);
-      const material = new THREE.MeshBasicMaterial({ map: videoTexture });
-      const videoPlane = new THREE.Mesh(geometry, material);
-
-      // Create an anchor for the target (index 0 for the first target in .mind file)
-      const anchor = mindarThree.addAnchor(0);
-      anchor.group.add(videoPlane);
-
-      // Play/Pause the video when the target is found/lost
-      anchor.onTargetFound = () => {
-        video.play();
-        console.log("🎯 Target Found: Playing Video");
-      };
-
-      anchor.onTargetLost = () => {
-        video.pause();
-        console.log("❌ Target Lost: Pausing Video");
-      };
-
-      // Start AR session
-      mindarThree.start();
-
-      // Animation loop to render the scene continuously
-      renderer.setAnimationLoop(() => {
-        renderer.render(scene, camera);
-      });
-    });
-  </script>
-
-</body>
-
+    </script>
+  </body>
 </html>
